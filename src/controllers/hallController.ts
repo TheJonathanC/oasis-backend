@@ -2,13 +2,16 @@ import verifyToken from "../jwtToken.ts";
 import { addHall, Hall, deleteHallByName, updateHall } from "../queries.ts";
 
 export const addHallCtrl = async (req, res) => {
-  //needs a role auht
-  const hallData: Hall = req.body;
   try {
-    const newHall = await addHall(hallData);
-    res.status(201).json({ message: "Hall added successfully", hall: newHall });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    const hallData = req.body;
+    const result = await addHall(hallData);
+    res.status(201).json(result); // 201 Created
+  } catch (error: any) {
+    if (error.message === "Hall with this name already exists.") {
+      res.status(409).json({ error: error.message }); // 409 Conflict
+    } else {
+      res.status(500).json({ error: error.message }); // 500 Internal Server Error
+    }
   }
 };
 

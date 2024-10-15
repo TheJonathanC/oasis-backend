@@ -24,8 +24,13 @@ export const addHall = async (hallData: Hall) => {
   try {
     const result = await db.insert(halls).values(hallData);
     return result;
-  } catch (error) {
-    throw new Error(`Error adding hall: ${error.message}`);
+  } catch (error: any) {
+    if (error.code === "23505") {
+      // Unique violation error code in PostgreSQL
+      throw new Error("Hall with this name already exists.");
+    } else {
+      throw new Error(`Error adding hall: ${error.message}`);
+    }
   }
 };
 
