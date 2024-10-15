@@ -1,18 +1,17 @@
 import {
-  serial,
-  varchar,
-  integer,
-  text,
   boolean,
-  timestamp,
   date,
-  time,
-  uniqueIndex,
+  integer,
   pgEnum,
+  serial,
+  text,
+  time,
+  timestamp,
+  uniqueIndex,
+  varchar,
 } from "drizzle-orm/pg-core";
 
 import { pgTable } from "drizzle-orm/pg-core/table";
-import { ForeignKey } from "drizzle-orm/pg-core";
 
 // Users Table
 export const RoleEnum = pgEnum("role_enum", ["admin", "moderator", "viewer"]);
