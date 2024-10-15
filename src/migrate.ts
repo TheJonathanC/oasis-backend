@@ -3,7 +3,7 @@ import db from "./db";
 
 export const migrateDB = async () => {
   console.log("migrating db");
-  await migrate(db, { migrationsFolder: "drizzle" });
+  await migrate(db, { migrationsFolder: "drizzle-migrations" });
   console.log("db migrated");
 };
 

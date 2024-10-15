@@ -1,51 +1,50 @@
-import db from "./db";
-import { cities, countries, City, Country } from "./schema";
-
-export async function getAllCities() {
-  const allCities = await db.select().from(cities);
-
-  return allCities;
+import db from "./db.ts";
+import {
+  users,
+  reservationHolder,
+  halls,
+  reservation,
+  notifications,
+} from "./schema.ts";
+import { eq } from "drizzle-orm";
+export async function getAllReservations() {
+  const res = await db.select().from(reservation);
+  return res;
 }
 
-export async function getAllCountries() {
-  const allCountries = await db.select().from(countries);
-
-  return allCountries;
+export interface Hall {
+  hallName: string;
+  hallFacility: string;
+  capacity: number;
+  type: string;
+  primaryInCharge: string;
 }
 
-export async function insertCity(newCities: City[]): Promise<City[]> {
-  const insertedCities = await db.insert(cities).values(newCities).returning();
+export const addHall = async (hallData: Hall) => {
+  try {
+    const result = await db.insert(halls).values(hallData);
+    return result;
+  } catch (error) {
+    throw new Error(`Error adding hall: ${error.message}`);
+  }
+};
 
-  return insertedCities;
-}
+export const deleteHallByName = async (hallName) => {
+  try {
+    const result = await db
+      .delete(halls)
+      .where(eq(halls.hallName, hallName)) // Use eq for comparison
+      .execute();
 
-export async function insertCountry(
-  newCountries: Country[]
-): Promise<Country[]> {
-  const insertedCountries = await db
-    .insert(countries)
-    .values(newCountries)
-    .returning();
+    // Check if a hall was deleted
+    if (result.count === 0) {
+      throw new Error(`No hall found with the name "${hallName}"`);
+    }
 
-  return insertedCountries;
-}
-
-export async function getAllCountriesWithCities() {
-  const countries = await db.query.countries.findMany({
-    with: {
-      cities: true,
-    },
-  });
-
-  return countries;
-}
-
-export async function getAllCitiesWithCountry() {
-  const cities = await db.query.cities.findMany({
-    with: {
-      country: true,
-    },
-  });
-
-  return cities;
-}
+    console.log(`Hall "${hallName}" has been successfully deleted.`);
+    return { message: `Hall "${hallName}" has been deleted.` };
+  } catch (error) {
+    console.error("Error deleting hall:", error);
+    throw error; // Rethrow the error for handling in the calling function
+  }
+};

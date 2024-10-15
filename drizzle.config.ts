@@ -10,3 +10,4 @@ export default {
   out: "./drizzle",
   connectionString: process.env.DATABASE_URL,
 } satisfies Config;
+
