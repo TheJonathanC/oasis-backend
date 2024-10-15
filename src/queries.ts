@@ -23,27 +23,26 @@ export interface Hall {
 export const addHall = async (hallData: Hall) => {
   try {
     const result = await db.insert(halls).values(hallData);
-    console.log(result);
     return result;
   } catch (error) {
     throw new Error(`Error adding hall: ${error.message}`);
   }
 };
 
-export const deleteHallByName = async (hallName) => {
+export const deleteHallByName = async (hallId) => {
   try {
     const result = await db
       .delete(halls)
-      .where(eq(halls.hallName, hallName)) // Use eq for comparison
+      .where(eq(halls.hallId, hallId)) // Use eq for comparison
       .execute();
 
     // Check if a hall was deleted
     if (result.count === 0) {
-      throw new Error(`No hall found with the name "${hallName}"`);
+      throw new Error(`No hall found with the id "${hallId}"`);
     }
 
-    console.log(`Hall "${hallName}" has been successfully deleted.`);
-    return { message: `Hall "${hallName}" has been deleted.` };
+    console.log(`Hall "${hallId}" has been successfully deleted.`);
+    return { message: `Hall "${hallId}" has been deleted.` };
   } catch (error) {
     console.error("Error deleting hall:", error);
     throw error; // Rethrow the error for handling in the calling function
