@@ -1,3 +1,4 @@
+import { Console } from "console";
 import db from "./db.ts";
 import {
   users,
@@ -22,33 +23,54 @@ export interface Hall {
 
 export const addHall = async (hallData: Hall) => {
   try {
-    const result = await db.insert(halls).values(hallData);
-    return result;
+    // Check if all required fields are present
+    const missingFields: string[] = [];
+
+    if (!hallData.hallName) missingFields.push("hallName");
+    if (!hallData.hallFacility) missingFields.push("hallFacility");
+    if (hallData.capacity === undefined) missingFields.push("capacity");
+    if (!hallData.type) missingFields.push("type");
+    if (!hallData.primaryInCharge) missingFields.push("primaryInCharge");
+
+    // If there are missing fields, throw a professional error message
+    if (missingFields.length > 0) {
+      throw new Error(
+        `The following required fields are missing: ${missingFields.join(
+          ", "
+        )}.Please provide all required information and try again.`
+      );
+    }
+
+    // Proceed with the database insert
+    const result = await db.insert(halls).values(hallData).execute();
+
+    return result; // Successfully added the hall
   } catch (error: any) {
     if (error.code === "23505") {
       // Unique violation error code in PostgreSQL
-      throw new Error("Hall with this name already exists.");
+      throw new Error(
+        "A hall with this name already exists. Please choose a different name."
+      );
     } else {
       throw new Error(`Error adding hall: ${error.message}`);
     }
   }
 };
 
-export const deleteHallByName = async (hallId) => {
+export const deleteHallById = async (hallId: number) => {
   try {
     const result = await db
       .delete(halls)
-      .where(eq(halls.hallId, hallId)) // Use eq for comparison
+      .where(eq(halls.hallId, hallId)) // Using eq for exact matching of hallId
       .execute();
 
     // Check if a hall was deleted
     if (result.count === 0) {
-      throw new Error(`No hall found with the id "${hallId}"`);
+      throw new Error(`No hall found with the id ${hallId}`);
     }
-
-    console.log(`Hall "${hallId}" has been successfully deleted.`);
-    return { message: `Hall "${hallId}" has been deleted.` };
-  } catch (error) {
+    console.log(`Hall ${hallId} has been successfully deleted.`);
+    return { message: `Hall ${hallId} has been deleted.` };
+  } catch (error: any) {
     console.error("Error deleting hall:", error);
     throw error; // Rethrow the error for handling in the calling function
   }

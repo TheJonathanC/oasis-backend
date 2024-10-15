@@ -1,27 +1,47 @@
 import verifyToken from "../jwtToken.ts";
-import { addHall, Hall, deleteHallByName, updateHall } from "../queries.ts";
+import { Request, Response } from "express";
+import { addHall, Hall, deleteHallById, updateHall } from "../queries.ts";
 
-export const addHallCtrl = async (req, res) => {
+export const addHallCtrl = async (req: Request, res: Response) => {
+  const hallData: Hall = req.body;
+
   try {
-    const hallData = req.body;
     const result = await addHall(hallData);
-    res.status(201).json(result); // 201 Created
+    // If successful, send a 201 Created status
+    res.status(201).json({ message: "Hall added successfully", data: result });
   } catch (error: any) {
-    if (error.message === "Hall with this name already exists.") {
+    // Handle specific "Missing required fields" error for 400 status
+    if (error.message.includes("The following required fields are missing")) {
+      res.status(400).json({ error: error.message }); // 400 Bad Request
+    } else if (error.message.includes("Hall with this name already exists.")) {
       res.status(409).json({ error: error.message }); // 409 Conflict
     } else {
-      res.status(500).json({ error: error.message }); // 500 Internal Server Error
+      // For any other errors, send a 500 Internal Server Error
+      res.status(500).json({ error: "Internal server error" });
     }
   }
 };
 
-export const deleteHall = async (req, res) => {
+export const deleteHall = async (req: Request, res: Response) => {
+  if (!req.body.hallId) {
+    return res.status(400).json({ error: "Missing field: hallId" });
+  }
+  const hallId = parseInt(req.body.hallId, 10); // Extract hallId from URL and convert to number
+
   try {
-    const { hallId } = req.body;
-    const deletedHall = await deleteHallByName(hallId);
-    res.status(200).json(deletedHall);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    // Call the deleteHallById function
+    const result = await deleteHallById(hallId);
+
+    // If successful, send a 200 OK status
+    res.status(200).json({ message: result.message });
+  } catch (error: any) {
+    // Handle specific "No hall found" error for 404 status
+    if (error.message.includes("No hall found")) {
+      res.status(404).json({ error: error.message });
+    } else {
+      // For any other errors, send a 500 Internal Server Error
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 };
 
